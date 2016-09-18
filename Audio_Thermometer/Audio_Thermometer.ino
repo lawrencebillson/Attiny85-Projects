@@ -5,7 +5,7 @@
 // with the actual definition on the right
 #define THERMOMETER 3 // Pin 2 on the DIP-8 packaged chip
 #define POT A2 // Pin 3 on the DIP-8 packaged chip
-#define PIEZO 1 // Pin 5 on the DIP-8 packaged chip
+#define PIEZO 1 // Pin 6 on the DIP-8 packaged chip
 
 
 // Setup the OneWire and thermometer interface
@@ -23,10 +23,10 @@ void setup() {
 
 void loop() {
   // This code will run in a loop forever
-  int temp = 0; // We'll use the 'temp' variable for storing temperature from the thermometer
+  float temp = 0; // We'll use the 'temp' variable for storing temperature from the thermometer
   int pot = 0; // We'll store the value of the potentiometer's wiper in variable 'pot'
-  int ttone = 0; // We'll store the frequency (in Hertz) of what we'll play in the ttone variable
-
+  long unsigned int ttone = 0; // We'll store the frequency (in Hertz) of what we'll play in the ttone variable
+  long unsigned int unscaled = 0; 
 
   // Read the temperature
   sensors.requestTemperatures(); // Send the command to get temperatures
@@ -34,15 +34,31 @@ void loop() {
 
   // Read the value of the pot wiper
   pot = analogRead(POT);
-  pot = pot + 10; // Add a couple, otherwise we get a divide by zero
-  pot = pot * 4;
+  pot = pot / 10; 
 
+  // The thermometer reports in degrees C, but down to -55. We need this to be a positive value 
+  temp = temp + 60;
+  // Square it?
   
+  // Convert it to a range we can hear
+  unscaled = (temp * pot) + (pot * 100);
+  ttone = 4000 - unscaled;
 
-  playTone(pot,200); 
-  }
+  // Play the tone
+  playTone(ttone,400); 
+}
 
 void playTone(int tone, int duration) {
+  // The highest tone this can play on an 8Mhz Attiny85 is about '120' - about 7.8Khz
+  // The lowest is about 4000 - 250Hz
+  if(tone >= 4000) {
+     tone = 4000;
+  }
+  if (tone <= 120) {
+     tone = 120;
+  }
+
+  
   for (long i = 0; i < duration * 1000L; i += tone * 2) {
     digitalWrite(PIEZO, HIGH);
     delayMicroseconds(tone);
