@@ -7,6 +7,11 @@
 #define POT A0
 #define PIEZO 6
 
+// Fix this!
+piezo - pb0
+therm - pb3
+wiper - pb4
+
 // Setup the OneWire and thermometer interface
 OneWire oneWire(THERMOMETER); // THERMOMETER is defined above. If we change its pin, we only need to change it in one spot
 DallasTemperature sensors(&oneWire);
