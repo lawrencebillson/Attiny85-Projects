@@ -3,14 +3,10 @@
 
 // these #define lines are like a find/replace - the compiler will substitute the human readable value on the left
 // with the actual definition on the right
-#define THERMOMETER 3
-#define POT A0
-#define PIEZO 6
+#define THERMOMETER 3 // Pin 2 on the DIP-8 packaged chip
+#define POT A2 // Pin 3 on the DIP-8 packaged chip
+#define PIEZO 1 // Pin 5 on the DIP-8 packaged chip
 
-// Fix this!
-piezo - pb0
-therm - pb3
-wiper - pb4
 
 // Setup the OneWire and thermometer interface
 OneWire oneWire(THERMOMETER); // THERMOMETER is defined above. If we change its pin, we only need to change it in one spot
@@ -20,19 +16,17 @@ void setup() {
   // This code runs once when  we power on
   sensors.begin(); // This tells the OneWire bus to start
 
-  // Setup the output
-  pinMode(PIEZO, OUTPUT); // Pin 6 is connected to the piezo speaker
+  // Tell the chip this pin is an output
+  pinMode(PIEZO, OUTPUT);
+  pinMode(POT, INPUT);
 }
 
 void loop() {
   // This code will run in a loop forever
-  float temp = 0; // We'll use the 'temp' variable for storing temperature from the thermometer
+  int temp = 0; // We'll use the 'temp' variable for storing temperature from the thermometer
   int pot = 0; // We'll store the value of the potentiometer's wiper in variable 'pot'
   int ttone = 0; // We'll store the frequency (in Hertz) of what we'll play in the ttone variable
 
-  // Turn off the tone
-  noTone(PIEZO);
-  
 
   // Read the temperature
   sensors.requestTemperatures(); // Send the command to get temperatures
@@ -40,18 +34,22 @@ void loop() {
 
   // Read the value of the pot wiper
   pot = analogRead(POT);
+  pot = pot + 10; // Add a couple, otherwise we get a divide by zero
+  pot = pot * 4;
 
-  // Some maths to get the tone in human audible range
+  
 
-  // The temperature sensor reads down to -55, we need to make it a positive number
-  pot = pot + 50; // No such thing as a negative frequency!
-
-  // Multiply it by the value of the potentiometer - this allows us to change its range
-  ttone = ((pot * temp)/10);
-
-  // Play the tone
-  tone(PIEZO,ttone);
-
-  // Delay (while playing the tone) for a few milliseconds before starting all over again
-  delay(200);
+  playTone(pot,200); 
   }
+
+void playTone(int tone, int duration) {
+  for (long i = 0; i < duration * 1000L; i += tone * 2) {
+    digitalWrite(PIEZO, HIGH);
+    delayMicroseconds(tone);
+    digitalWrite(PIEZO, LOW);
+    delayMicroseconds(tone);
+  }
+}
+
+
+
